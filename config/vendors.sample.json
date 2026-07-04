@@ -1,0 +1,67 @@
+{
+  "PAN_VERIFICATION": {
+    "strategy": "weighted",
+    "vendors": [
+      {
+        "name": "VendorA",
+        "weight": 70,
+        "costPerRequest": 1.5,
+        "timeoutMs": 2000,
+        "rateLimitPerMinute": 100,
+        "priority": 1,
+        "supportedFeatures": ["PAN_VERIFICATION", "NAME_MATCH"],
+        "simulatedFailureRate": 0.05,
+        "simulatedLatencyMs": [150, 500]
+      },
+      {
+        "name": "VendorB",
+        "weight": 30,
+        "costPerRequest": 1.2,
+        "timeoutMs": 3000,
+        "rateLimitPerMinute": 50,
+        "priority": 2,
+        "supportedFeatures": ["PAN_VERIFICATION"],
+        "simulatedFailureRate": 0.05,
+        "simulatedLatencyMs": [200, 700]
+      },
+      {
+        "name": "VendorC",
+        "weight": 0,
+        "costPerRequest": 1.0,
+        "timeoutMs": 4000,
+        "rateLimitPerMinute": 100,
+        "priority": 3,
+        "supportedFeatures": ["PAN_VERIFICATION", "NAME_MATCH"],
+        "simulatedFailureRate": 0.05,
+        "simulatedLatencyMs": [100, 300]
+      }
+    ]
+  },
+  "OCR": {
+    "strategy": "lowest-cost",
+    "vendors": [
+      {
+        "name": "OcrVendorX",
+        "weight": 1,
+        "costPerRequest": 0.8,
+        "timeoutMs": 5000,
+        "rateLimitPerMinute": 200,
+        "priority": 1,
+        "supportedFeatures": ["OCR", "HANDWRITING"],
+        "simulatedFailureRate": 0.1,
+        "simulatedLatencyMs": [300, 900]
+      },
+      {
+        "name": "OcrVendorY",
+        "weight": 1,
+        "costPerRequest": 0.5,
+        "timeoutMs": 5000,
+        "rateLimitPerMinute": 150,
+        "priority": 2,
+        "supportedFeatures": ["OCR"],
+        "simulatedFailureRate": 0.1,
+        "simulatedLatencyMs": [400, 1000]
+      }
+    ]
+  }
+}

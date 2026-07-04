@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Vendor Routing Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--border:#2e3348;--primary:#6c63ff;--primary-glow:#6c63ff40;--green:#00d68f;--red:#ff6b6b;--yellow:#ffd93d;--blue:#4ecdc4;--text:#e8e8f0;--text2:#9a9ab0;--radius:12px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1d27 0%,#242836 100%);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,#6c63ff,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green)}
+.header .status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--primary)}
+.card h2{font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card h2 span{font-size:16px}
+.stat-row{display:flex;gap:16px;margin-bottom:20px}
+.stat{flex:1;background:var(--surface2);border-radius:8px;padding:14px;text-align:center}
+.stat .val{font-size:24px;font-weight:700;margin-bottom:2px}
+.stat .lbl{font-size:11px;color:var(--text2);text-transform:uppercase}
+.vendor-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin:4px;font-size:13px}
+.vendor-chip .dot{width:8px;height:8px;border-radius:50%}
+.vendor-chip .dot.up{background:var(--green)}
+.vendor-chip .dot.down{background:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.success{background:#00d68f20;color:var(--green)}
+.badge.error{background:#ff6b6b20;color:var(--red)}
+.badge.strategy{background:#6c63ff20;color:var(--primary)}
+select,input,button{font-family:inherit;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:8px 12px;outline:none}
+select:focus,input:focus{border-color:var(--primary)}
+button{cursor:pointer;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{box-shadow:0 0 20px var(--primary-glow);transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.form-row{display:flex;gap:12px}
+.form-row>*{flex:1}
+.log-entry{background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:8px;font-size:12px;border-left:3px solid var(--primary)}
+.log-entry.fail{border-left-color:var(--red)}
+.log-entry .meta{color:var(--text2);margin-top:4px}
+.reason-box{background:var(--surface2);border-radius:8px;padding:14px;margin-top:12px;font-size:13px;border-left:3px solid var(--blue)}
+.response-box{background:#0d0f15;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;font-family:'Courier New',monospace;font-size:12px;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.bar-container{background:var(--surface2);border-radius:4px;height:6px;margin-top:4px;overflow:hidden}
+.bar{height:100%;border-radius:4px;transition:width .5s ease}
+.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);background:transparent;border:1px solid transparent;transition:all .2s}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tab:hover:not(.active){background:var(--surface2)}
+.full-width{grid-column:1/-1}
+.hidden{display:none}
+.meter{display:flex;align-items:center;gap:8px}
+.meter-bar{flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.meter-fill{height:100%;border-radius:3px;transition:width .5s}
+@media(max-width:900px){.grid,.grid-3{grid-template-columns:1fr}.form-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>⚡ Intelligent Vendor Routing Platform</h1>
+  <div class="status"><div class="dot"></div> System Online</div>
+</div>
+
+<div class="container">
+  <!-- Stats Row -->
+  <div class="stat-row" id="stats-row">
+    <div class="stat"><div class="val" id="stat-vendors">-</div><div class="lbl">Total Vendors</div></div>
+    <div class="stat"><div class="val" id="stat-capabilities">-</div><div class="lbl">Capabilities</div></div>
+    <div class="stat"><div class="val" id="stat-requests">-</div><div class="lbl">Total Requests</div></div>
+    <div class="stat"><div class="val" style="color:var(--green)" id="stat-success">-</div><div class="lbl">Success Rate</div></div>
+    <div class="stat"><div class="val" style="color:var(--blue)" id="stat-uptime">-</div><div class="lbl">Uptime</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Route Request Panel -->
+    <div class="card">
+      <h2><span>🚀</span> Route a Request</h2>
+      <div class="form-group">
+        <label>Capability</label>
+        <select id="route-cap" style="width:100%">
+          <option value="PAN_VERIFICATION">PAN_VERIFICATION</option>
+          <option value="OCR">OCR</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Strategy Override (optional)</label>
+          <select id="route-strategy" style="width:100%">
+            <option value="">Default (from config)</option>
+            <option value="priority">Priority</option>
+            <option value="weighted">Weighted</option>
+            <option value="lowest-latency">Lowest Latency</option>
+            <option value="lowest-cost">Lowest Cost</option>
+            <option value="failover">Failover</option>
+            <option value="round-robin">Round Robin</option>
+            <option value="feature-based">Feature Based</option>
+            <option value="health-based">Health Based</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Max Latency (ms)</label>
+          <input type="number" id="route-latency" placeholder="2000" style="width:100%">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>PAN Number</label>
+          <input type="text" id="route-pan" value="ABCDE1234F" style="width:100%">
+        </div>
+        <div class="form-group"><label>Name</label>
+          <input type="text" id="route-name" value="Rahul Sharma" style="width:100%">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn-primary" onclick="sendRoute()">Send Request</button>
+        <button class="btn-primary" style="background:#4ecdc4;border-color:#4ecdc4" onclick="sendBurst()">Send 10x Burst</button>
+      </div>
+      <div id="route-result"></div>
+    </div>
+
+    <!-- Vendor Health Panel -->
+    <div class="card">
+      <h2><span>💊</span> Vendor Health & Metrics <span style="font-size:11px;color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">(toggle to test failover)</span></h2>
+      <div id="health-panel">Loading...</div>
+    </div>
+
+    <!-- Routing Logs -->
+    <div class="card">
+      <h2><span>📋</span> Routing Decision Logs</h2>
+      <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text2)">Latest routing decisions</span>
+        <button class="btn-sm btn-primary" onclick="loadLogs()">Refresh</button>
+      </div>
+      <div id="logs-panel" style="max-height:400px;overflow-y:auto">Loading...</div>
+    </div>
+
+    <!-- Agentic AI Panel -->
+    <div class="card">
+      <h2><span>🤖</span> Agentic AI</h2>
+      <div class="tabs">
+        <div class="tab active" onclick="switchAgentTab(this,'agent-recommend')">Strategy</div>
+        <div class="tab" onclick="switchAgentTab(this,'agent-unhealthy')">Unhealthy</div>
+        <div class="tab" onclick="switchAgentTab(this,'agent-fallback')">Fallback</div>
+        <div class="tab" onclick="switchAgentTab(this,'agent-nlp')">NLP Config</div>
+      </div>
+      <div id="agent-recommend">
+        <div class="form-group"><label>Capability</label>
+          <select id="agent-cap" style="width:100%"><option>PAN_VERIFICATION</option><option>OCR</option></select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="agentRecommend()">Get Recommendation</button>
+        <div id="agent-recommend-result"></div>
+      </div>
+      <div id="agent-unhealthy" class="hidden">
+        <button class="btn-primary btn-sm" onclick="agentUnhealthy()">Detect Unhealthy Vendors</button>
+        <div id="agent-unhealthy-result"></div>
+      </div>
+      <div id="agent-fallback" class="hidden">
+        <div class="form-group"><label>Capability</label>
+          <select id="agent-fb-cap" style="width:100%"><option>PAN_VERIFICATION</option><option>OCR</option></select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="agentFallback()">Suggest Fallback</button>
+        <div id="agent-fallback-result"></div>
+      </div>
+      <div id="agent-nlp" class="hidden">
+        <div class="form-group"><label>Plain English Instruction</label>
+          <input type="text" id="agent-text" style="width:100%" value="Use Vendor A for 70% traffic, Vendor B for 30%, but switch to Vendor C if latency crosses 2 seconds or error rate is above 5%.">
+        </div>
+        <button class="btn-primary btn-sm" onclick="agentGenerate()">Generate Config</button>
+        <div id="agent-nlp-result"></div>
+      </div>
+    </div>
+
+    <!-- Register Vendor -->
+    <div class="card full-width">
+      <h2><span>➕</span> Register New Vendor</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Capability</label><input type="text" id="reg-cap" value="PAN_VERIFICATION" style="width:100%"></div>
+        <div class="form-group"><label>Vendor Name *</label><input type="text" id="reg-name" placeholder="VendorD" style="width:100%"></div>
+        <div class="form-group"><label>Weight</label><input type="number" id="reg-weight" value="50" style="width:100%"></div>
+        <div class="form-group"><label>Cost/Request ($)</label><input type="number" id="reg-cost" value="1.0" step="0.1" style="width:100%"></div>
+        <div class="form-group"><label>Timeout (ms)</label><input type="number" id="reg-timeout" value="3000" style="width:100%"></div>
+        <div class="form-group"><label>Rate Limit/min</label><input type="number" id="reg-rate" value="100" style="width:100%"></div>
+        <div class="form-group"><label>Priority</label><input type="number" id="reg-priority" value="2" style="width:100%"></div>
+        <div class="form-group"><label style="opacity:0">.</label><button class="btn-primary" onclick="registerVendor()" style="width:100%;height:37px">Register</button></div>
+      </div>
+      <div id="reg-result"></div>
+    </div>
+
+    <!-- Error Validation Panel -->
+    <div class="card full-width">
+      <h2><span>🛡️</span> Error Validation Testing</h2>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Test all error cases — the system should return proper HTTP error codes and messages.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm btn-primary" style="background:#ff6b6b;border-color:#ff6b6b" onclick="testError('no-capability')">Missing capability → 400</button>
+        <button class="btn-sm btn-primary" style="background:#ff6b6b;border-color:#ff6b6b" onclick="testError('unknown-capability')">Unknown capability → 404</button>
+        <button class="btn-sm btn-primary" style="background:#ff6b6b;border-color:#ff6b6b" onclick="testError('no-vendor-name')">Register without name → 400</button>
+        <button class="btn-sm btn-primary" style="background:#ff6b6b;border-color:#ff6b6b" onclick="testError('patch-unknown')">Update unknown vendor → 404</button>
+        <button class="btn-sm btn-primary" style="background:#ffd93d;border-color:#ffd93d;color:#000" onclick="testError('agent-unknown-cap')">Agent unknown cap → error</button>
+      </div>
+      <div id="error-result"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  return res.json();
+}
+
+// --- Dashboard refresh ---
+async function refreshDashboard() {
+  try {
+    const [health, vendors, metrics] = await Promise.all([
+      api('GET', '/health'),
+      api('GET', '/vendors'),
+      api('GET', '/vendor-metrics')
+    ]);
+
+    // Stats
+    const allMetrics = metrics.metrics || [];
+    const totalReqs = allMetrics.reduce((s, m) => s + m.totalRequests, 0);
+    const totalSuccess = allMetrics.reduce((s, m) => s + m.successCount, 0);
+    const sr = totalReqs > 0 ? ((totalSuccess / totalReqs) * 100).toFixed(1) + '%' : '100%';
+    document.getElementById('stat-vendors').textContent = allMetrics.length;
+    document.getElementById('stat-capabilities').textContent = (vendors.capabilities || []).length;
+    document.getElementById('stat-requests').textContent = totalReqs;
+    document.getElementById('stat-success').textContent = sr;
+    document.getElementById('stat-uptime').textContent = Math.round(health.uptimeSeconds || 0) + 's';
+
+    // Health panel — with Force Down toggle
+    let hp = '';
+    // Get full vendor config to check forceDown flag
+    const allVendorConfigs = (vendors.capabilities || []).flatMap(c => c.vendors);
+    for (const v of (health.vendors || [])) {
+      const m = allMetrics.find(x => x.name === v.vendor) || {};
+      const cfg = allVendorConfigs.find(x => x.name === v.vendor) || {};
+      const isForceDown = cfg.forceDown === true;
+      const successRate = m.totalRequests > 0 ? ((m.successCount / m.totalRequests) * 100).toFixed(1) : '100.0';
+      const errPct = (v.errorRate * 100).toFixed(1);
+      const barColor = v.available && !isForceDown ? (v.errorRate > 0.1 ? 'var(--yellow)' : 'var(--green)') : 'var(--red)';
+      const displayStatus = isForceDown ? 'FORCE DOWN' : (v.available ? 'HEALTHY' : 'UNHEALTHY');
+      const statusColor = isForceDown ? 'error' : (v.available ? 'success' : 'error');
+      hp += `<div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${isForceDown ? 'var(--red)' : (v.available ? 'var(--green)' : 'var(--yellow)' )}"></div>
+            <strong>${v.vendor}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${statusColor}">${displayStatus}</span>
+            <button class="btn-sm" style="background:${isForceDown ? 'var(--green)' : 'var(--red)'};border-color:${isForceDown ? 'var(--green)' : 'var(--red)'};color:#fff;padding:4px 10px;font-size:11px" onclick="toggleVendorDown('${v.vendor}', ${!isForceDown})">${isForceDown ? '▶ Restore' : '⏹ Force Down'}</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;color:var(--text2)">
+          <span>Reqs: <b style="color:var(--text)">${v.totalRequests}</b></span>
+          <span>Latency: <b style="color:var(--text)">${v.avgLatencyMs}ms</b></span>
+          <span>Errors: <b style="color:${errPct > 10 ? 'var(--red)' : 'var(--text)'}">${errPct}%</b></span>
+          <span>Success: <b style="color:var(--green)">${successRate}%</b></span>
+          <span>Cost: <b style="color:var(--text)">$${cfg.costPerRequest || '-'}</b></span>
+        </div>
+        <div class="bar-container" style="margin-top:8px"><div class="bar" style="width:${isForceDown ? 0 : successRate}%;background:${barColor}"></div></div>
+      </div>`;
+    }
+    document.getElementById('health-panel').innerHTML = hp || '<div style="color:var(--text2)">No vendors registered</div>';
+
+    // Update capability dropdowns
+    const caps = (vendors.capabilities || []).map(c => c.capability);
+    for (const sel of ['route-cap', 'agent-cap', 'agent-fb-cap']) {
+      const el = document.getElementById(sel);
+      const cur = el.value;
+      el.innerHTML = caps.map(c => `<option ${c === cur ? 'selected' : ''}>${c}</option>`).join('');
+    }
+  } catch (e) {
+    console.error('Dashboard refresh failed:', e);
+  }
+}
+
+async function loadLogs() {
+  try {
+    const data = await api('GET', '/routing-logs?limit=20');
+    const logs = data.routingDecisions || [];
+    if (logs.length === 0) {
+      document.getElementById('logs-panel').innerHTML = '<div style="color:var(--text2);font-size:13px">No routing decisions yet. Send a request first!</div>';
+      return;
+    }
+    let html = '';
+    for (const log of logs.reverse()) {
+      const isOk = !!log.chosen;
+      const excl = log.excluded || [];
+      html += `<div class="log-entry ${isOk ? '' : 'fail'}">
+        <div style="display:flex;justify-content:space-between">
+          <span><span class="badge strategy">${log.strategy}</span> <b>${log.capability}</b></span>
+          <span style="font-size:11px;color:var(--text2)">${new Date(log.timestamp).toLocaleTimeString()}</span>
+        </div>
+        <div style="margin-top:6px">→ <b style="color:${isOk ? 'var(--green)' : 'var(--red)'}">${log.chosen || 'ALL FAILED'}</b>
+          <span style="color:var(--text2);font-size:11px"> candidates: [${(log.candidates || []).join(', ')}]</span></div>
+        ${excl.length > 0 ? `<div style="font-size:11px;color:var(--red);margin-top:3px">🚫 Excluded: ${excl.map(e => e.name + ' (' + e.reason + ')').join('; ')}</div>` : ''}
+        <div class="meta" style="margin-top:4px">${log.reason}</div>
+        ${(log.attempts || []).length > 1 ? `<div style="margin-top:4px;font-size:11px;color:var(--yellow)">⚠ Failover chain: ${log.attempts.map(a => a.vendor + (a.success ? ' ✓' : ' ✗ ' + a.error)).join(' → ')}</div>` : ''}
+      </div>`;
+    }
+    document.getElementById('logs-panel').innerHTML = html;
+  } catch (e) {
+    document.getElementById('logs-panel').innerHTML = '<div style="color:var(--red)">Error loading logs</div>';
+  }
+}
+
+// --- Route Request ---
+async function sendRoute() {
+  const cap = document.getElementById('route-cap').value;
+  const strategy = document.getElementById('route-strategy').value;
+  const maxLat = document.getElementById('route-latency').value;
+  const body = { capability: cap, payload: { pan: document.getElementById('route-pan').value, name: document.getElementById('route-name').value }, requirements: {} };
+  if (strategy) body.strategy = strategy;
+  if (maxLat) body.requirements.maxLatencyMs = parseInt(maxLat);
+
+  const data = await api('POST', '/route', body);
+  let html;
+  if (data.status === 'SUCCESS') {
+    const excl = data.excludedVendors || [];
+    html = `<div class="reason-box">
+      <div style="margin-bottom:8px"><span class="badge success">SUCCESS</span> → <b>${data.vendorUsed}</b> in <b>${data.latencyMs}ms</b> (cost: $${data.cost})</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:${excl.length>0?'6px':'0'}">${data.routingReason}</div>
+      ${excl.length > 0 ? `<div style="font-size:11px;color:var(--red)">🚫 Excluded: ${excl.map(e => e.name+' ('+e.reason+')').join('; ')}</div>` : ''}
+    </div>
+    <div class="response-box">${JSON.stringify(data.response, null, 2)}</div>`;
+  } else {
+    const excl = data.excludedVendors || [];
+    html = `<div class="reason-box" style="border-left-color:var(--red)"><span class="badge error">ERROR ${data.httpStatus||''}</span> ${data.error}
+      ${excl.length > 0 ? '<br><span style="font-size:11px;color:var(--red)">🚫 Excluded: '+excl.map(e=>e.name+' ('+e.reason+')').join('; ')+'</span>' : ''}
+      ${data.attempts ? '<br>Attempts: ' + data.attempts.map(a => a.vendor + ' (' + a.error + ')').join(', ') : ''}
+    </div>`;
+  }
+  document.getElementById('route-result').innerHTML = html;
+  refreshDashboard();
+  loadLogs();
+}
+
+async function sendBurst() {
+  document.getElementById('route-result').innerHTML = '<div class="reason-box">Sending 10 requests...</div>';
+  const results = [];
+  for (let i = 0; i < 10; i++) {
+    const cap = document.getElementById('route-cap').value;
+    const strategy = document.getElementById('route-strategy').value;
+    const body = { capability: cap, payload: { pan: 'ABCDE1234F', name: 'Rahul Sharma' } };
+    if (strategy) body.strategy = strategy;
+    results.push(await api('POST', '/route', body));
+  }
+  const vendors = {};
+  results.forEach(r => { if (r.vendorUsed) vendors[r.vendorUsed] = (vendors[r.vendorUsed] || 0) + 1; });
+  const successes = results.filter(r => r.status === 'SUCCESS').length;
+  let html = `<div class="reason-box"><b>${successes}/10</b> succeeded<br>Distribution: ${Object.entries(vendors).map(([v, c]) => v + ': ' + c).join(', ')}</div>`;
+  document.getElementById('route-result').innerHTML = html;
+  refreshDashboard();
+  loadLogs();
+}
+
+// --- Force vendor down/up ---
+async function toggleVendorDown(vendorName, forceDown) {
+  await api('PATCH', `/vendors/${encodeURIComponent(vendorName)}`, { forceDown });
+  refreshDashboard();
+  loadLogs();
+}
+
+// --- Register Vendor ---
+async function registerVendor() {
+  const name = document.getElementById('reg-name').value.trim();
+  const cap = document.getElementById('reg-cap').value.trim();
+  if (!name) {
+    document.getElementById('reg-result').innerHTML = '<div class="reason-box" style="border-left-color:var(--red)"><span class="badge error">ERROR</span> Vendor Name is required</div>';
+    return;
+  }
+  if (!cap) {
+    document.getElementById('reg-result').innerHTML = '<div class="reason-box" style="border-left-color:var(--red)"><span class="badge error">ERROR</span> Capability is required</div>';
+    return;
+  }
+  const body = {
+    capability: cap,
+    vendor: {
+      name,
+      weight: parseInt(document.getElementById('reg-weight').value) || 50,
+      costPerRequest: parseFloat(document.getElementById('reg-cost').value) || 1.0,
+      timeoutMs: parseInt(document.getElementById('reg-timeout').value) || 3000,
+      rateLimitPerMinute: parseInt(document.getElementById('reg-rate').value) || 100,
+      priority: parseInt(document.getElementById('reg-priority').value) || 99
+    }
+  };
+  const data = await api('POST', '/vendors', body);
+  if (data.status === 'SUCCESS') {
+    document.getElementById('reg-result').innerHTML = `<div class="reason-box" style="border-left-color:var(--green)"><span class="badge success">REGISTERED</span> ${name} under ${cap} — priority: ${body.vendor.priority}, weight: ${body.vendor.weight}, cost: $${body.vendor.costPerRequest}</div>`;
+    document.getElementById('reg-name').value = '';
+  } else {
+    document.getElementById('reg-result').innerHTML = `<div class="reason-box" style="border-left-color:var(--red)"><span class="badge error">ERROR</span> ${data.error}</div>`;
+  }
+  refreshDashboard();
+}
+
+// --- Error Validation Tests ---
+async function testError(type) {
+  let result, label;
+  if (type === 'no-capability') {
+    result = await api('POST', '/route', { payload: { pan: 'TEST' } });
+    label = 'POST /route with no capability';
+  } else if (type === 'unknown-capability') {
+    result = await api('POST', '/route', { capability: 'NONEXISTENT_CAP' });
+    label = 'POST /route with unknown capability';
+  } else if (type === 'no-vendor-name') {
+    result = await api('POST', '/vendors', { capability: 'PAN_VERIFICATION', vendor: { weight: 50 } });
+    label = 'POST /vendors with no vendor name';
+  } else if (type === 'patch-unknown') {
+    result = await api('PATCH', '/vendors/DoesNotExist', { forceDown: true });
+    label = 'PATCH /vendors/DoesNotExist';
+  } else if (type === 'agent-unknown-cap') {
+    result = await api('GET', '/agent/recommend-strategy?capability=UNKNOWN');
+    label = 'GET /agent/recommend-strategy with unknown capability';
+  }
+  const isErr = result.status === 'ERROR' || result.error;
+  document.getElementById('error-result').innerHTML = `<div class="reason-box" style="border-left-color:${isErr ? 'var(--green)' : 'var(--red)'};margin-top:12px">
+    <b>${label}</b><br><span class="badge ${isErr ? 'success' : 'error'}">${isErr ? '✅ Correctly returned error' : '⚠ Unexpected success'}</span><br><br>
+    <div class="response-box" style="margin-top:8px">${JSON.stringify(result, null, 2)}</div>
+  </div>`;
+}
+
+// --- Agent tabs ---
+function switchAgentTab(el, id) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['agent-recommend', 'agent-unhealthy', 'agent-fallback', 'agent-nlp'].forEach(x => document.getElementById(x).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+async function agentRecommend() {
+  const cap = document.getElementById('agent-cap').value;
+  const data = await api('GET', `/agent/recommend-strategy?capability=${cap}`);
+  document.getElementById('agent-recommend-result').innerHTML = `<div class="reason-box"><span class="badge strategy">${data.recommendedStrategy}</span><br><br>${data.reason}</div>`;
+}
+
+async function agentUnhealthy() {
+  const data = await api('GET', '/agent/unhealthy-vendors');
+  const vendors = data.unhealthyVendors || [];
+  if (vendors.length === 0) {
+    document.getElementById('agent-unhealthy-result').innerHTML = '<div class="reason-box" style="border-left-color:var(--green)">✅ All vendors are healthy!</div>';
+  } else {
+    document.getElementById('agent-unhealthy-result').innerHTML = vendors.map(v =>
+      `<div class="reason-box" style="border-left-color:var(--red)"><b>${v.vendor}</b><br>${v.reasons.join('<br>')}</div>`
+    ).join('');
+  }
+}
+
+async function agentFallback() {
+  const cap = document.getElementById('agent-fb-cap').value;
+  const data = await api('GET', `/agent/suggest-fallback?capability=${cap}`);
+  const order = data.suggestedFallbackOrder || [];
+  let html = '<div class="reason-box"><b>Suggested Fallback Order:</b><br><br>';
+  html += order.map(v => `${v.order}. <b>${v.vendor}</b> — Success: ${(v.successRate * 100).toFixed(0)}%, Latency: ${v.avgLatencyMs}ms`).join('<br>');
+  html += `<br><br><span style="color:var(--text2);font-size:12px">${data.rule}</span></div>`;
+  document.getElementById('agent-fallback-result').innerHTML = html;
+}
+
+async function agentGenerate() {
+  const text = document.getElementById('agent-text').value;
+  const data = await api('POST', '/agent/generate-config', { text });
+  document.getElementById('agent-nlp-result').innerHTML = `<div class="response-box">${JSON.stringify(data.generatedConfig, null, 2)}</div>`;
+}
+
+// --- Init ---
+refreshDashboard();
+loadLogs();
+setInterval(refreshDashboard, 5000);
+</script>
+</body>
+</html>
