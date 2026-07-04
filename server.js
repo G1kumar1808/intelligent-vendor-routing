@@ -122,9 +122,11 @@ app.post('/agent/generate-config', (req, res) => {
   res.json({ status: 'SUCCESS', ...agent.generateConfigFromText(text) });
 });
 
-app.listen(PORT, () => {
-  console.log(`Intelligent Vendor Routing Platform listening on port ${PORT}`);
-  console.log(`Loaded capabilities: ${Object.keys(store.capabilities).join(', ')}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Intelligent Vendor Routing Platform listening on port ${PORT}`);
+    console.log(`Loaded capabilities: ${Object.keys(store.capabilities).join(', ')}`);
+  });
+}
 
 module.exports = app;
